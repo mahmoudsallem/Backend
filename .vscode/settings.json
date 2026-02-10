@@ -1,0 +1,12 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "http-localhost-9000-",
+        "projectKey": "backend"
+<<<<<<< HEAD
+    },
+    "snyk.advanced.organization": "0f4b1e1a-7a8f-4857-81b0-bb2af6632775",
+    "snyk.advanced.autoSelectOrganization": true
+=======
+    }
+>>>>>>> 67b1ad328d3237163d3470596736e589ccab4ef7
+}
