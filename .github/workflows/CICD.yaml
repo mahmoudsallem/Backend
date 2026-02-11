@@ -676,13 +676,14 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - cosign-sign
+    environment: UPDATE_HELLM
     steps:
       - name: Checkout Helm Repository
         uses: actions/checkout@v4
         with:
           repository: mahmoudsallem/Hellm
           ref: dev
-          token: ${{ secrets.HELM_REPO_TOKEN }}
+          token: ${{ secrets.HELM_REPO_PAT }}
           path: helm-repo
 
       - name: Update Image Tags in Helm Values
