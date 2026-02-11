@@ -13,6 +13,7 @@ on:
 # 3. Build Docker Image
 # 4. DAST (Dynamic Application Security Testing)
 # 5. Sign Docker Image
+# 6. Update Helm Chart Values (GitOps)
 # ============================================================
 
 jobs:
@@ -667,6 +668,82 @@ jobs:
           echo "  Build URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   # ============================================================
+  # STAGE 6: UPDATE HELM CHART VALUES
+  # (runs after signing to update the Helm charts with new image tag)
+  # ============================================================
+  update-helm:
+    name: Update Helm Chart Values
+    runs-on: ubuntu-latest
+    needs:
+      - cosign-sign
+    steps:
+      - name: Checkout Helm Repository
+        uses: actions/checkout@v4
+        with:
+          repository: mahmoudsallem/Hellm
+          ref: dev
+          token: ${{ secrets.UPDATE_HELLM }}
+          path: helm-repo
+
+      - name: Update Image Tags in Helm Values
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          echo "Updating Helm chart values with image tag: ${IMAGE_TAG}"
+
+          # Update backend values.yaml
+          if [ -f helm-repo/helm/Dev/backend/values.yaml ]; then
+            sed -i "s|tag:.*|tag: \"${IMAGE_TAG}\"|g" helm-repo/helm/Dev/backend/values.yaml
+            echo "Updated backend values.yaml"
+          fi
+
+          # Update db values.yaml
+          if [ -f helm-repo/helm/Dev/db/values.yaml ]; then
+            sed -i "s|tag:.*|tag: \"${IMAGE_TAG}\"|g" helm-repo/helm/Dev/db/values.yaml
+            echo "Updated db values.yaml"
+          fi
+
+          # Update frontend values.yaml
+          if [ -f helm-repo/helm/Dev/frontend/values.yaml ]; then
+            sed -i "s|tag:.*|tag: \"${IMAGE_TAG}\"|g" helm-repo/helm/Dev/frontend/values.yaml
+            echo "Updated frontend values.yaml"
+          fi
+
+          echo "All Helm chart values updated"
+
+      - name: Commit and Push Changes
+        run: |
+          cd helm-repo
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update image tag to ${{ github.sha }}
+
+            Triggered by: ${{ github.repository }}
+            Workflow: ${{ github.workflow }}
+            Run ID: ${{ github.run_id }}
+            Actor: ${{ github.actor }}"
+
+            git push origin dev
+            echo "Changes pushed to Hellm repository"
+          fi
+
+      - name: Helm Update Summary
+        run: |
+          echo "### Helm Chart Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Application | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | Updated |" >> $GITHUB_STEP_SUMMARY
+          echo "| DB | Updated |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | Updated |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Image Tag: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================
   # FINAL: SUMMARY (runs after everything completes)
   # ============================================================
   summary:
@@ -684,6 +761,7 @@ jobs:
       - snyk-container
       - dast-zap
       - cosign-sign
+      - update-helm
     if: always()
     steps:
       - name: Generate Pipeline Summary
@@ -720,6 +798,11 @@ jobs:
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Cosign Image Signing | \`${{ needs.cosign-sign.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Stage 6: Update Helm Charts" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Update Helm Values | \`${{ needs.update-helm.result }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "Pipeline completed | Commit: \`${{ github.sha }}\` | Branch: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
