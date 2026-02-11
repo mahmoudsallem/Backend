@@ -691,25 +691,13 @@ jobs:
           IMAGE_TAG="${{ github.sha }}"
           echo "Updating Helm chart values with image tag: ${IMAGE_TAG}"
 
-          # Update backend values.yaml
+          # Update backend values.yaml only
           if [ -f helm-repo/helm/Dev/backend/values.yaml ]; then
             sed -i "s|tag:.*|tag: \"${IMAGE_TAG}\"|g" helm-repo/helm/Dev/backend/values.yaml
             echo "Updated backend values.yaml"
           fi
 
-          # Update db values.yaml
-          if [ -f helm-repo/helm/Dev/db/values.yaml ]; then
-            sed -i "s|tag:.*|tag: \"${IMAGE_TAG}\"|g" helm-repo/helm/Dev/db/values.yaml
-            echo "Updated db values.yaml"
-          fi
-
-          # Update frontend values.yaml
-          if [ -f helm-repo/helm/Dev/frontend/values.yaml ]; then
-            sed -i "s|tag:.*|tag: \"${IMAGE_TAG}\"|g" helm-repo/helm/Dev/frontend/values.yaml
-            echo "Updated frontend values.yaml"
-          fi
-
-          echo "All Helm chart values updated"
+          echo "Backend Helm chart values updated"
 
       - name: Commit and Push Changes
         run: |
@@ -739,8 +727,6 @@ jobs:
           echo "| Application | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Backend | Updated |" >> $GITHUB_STEP_SUMMARY
-          echo "| DB | Updated |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | Updated |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Image Tag: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
 
