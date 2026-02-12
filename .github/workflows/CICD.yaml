@@ -681,8 +681,8 @@ jobs:
       - name: Tag and Push to Amazon ECR
         id: push-ecr
         run: |
-          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
-          ECR_REPOSITORY="${{ secrets.ECR_REPOSITORY }}"
+          ECR_REGISTRY="288378107043.dkr.ecr.us-east-1.amazonaws.com"
+          ECR_REPOSITORY="final/backend"
           SHORT_SHA="${{ steps.load.outputs.short_sha }}"
           FULL_IMAGE="${ECR_REGISTRY}/${ECR_REPOSITORY}:${SHORT_SHA}"
 
