@@ -784,6 +784,7 @@ jobs:
       - cosign-sign
       - update-helm
     if: always()
+    environment: SLACK_WEBHOOK_URL
     steps:
       - name: Generate Pipeline Summary
         run: |
@@ -815,10 +816,10 @@ jobs:
           echo "| Snyk Container Scan | \`${{ needs.snyk-container.result }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| OWASP ZAP (DAST) | \`${{ needs.dast-zap.result }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "#### Stage 5: Sign" >> $GITHUB_STEP_SUMMARY
+          echo "#### Stage 5: Sign & Push" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Cosign Image Signing | \`${{ needs.cosign-sign.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cosign Sign & ECR Push | \`${{ needs.cosign-sign.result }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "#### Stage 6: Update Helm Charts" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
@@ -827,3 +828,18 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "Pipeline completed | Commit: \`${{ github.sha }}\` | Branch: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Slack
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_CHANNEL: devops
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_TITLE: "Backend CI/CD Pipeline"
+          SLACK_MESSAGE: |
+            *Status:* ${{ job.status }}
+            *Branch:* ${{ github.ref_name }}
+            *Commit:* ${{ github.sha }}
+            *Actor:* ${{ github.actor }}
+          SLACK_FOOTER: "GitHub Actions | ${{ github.repository }}"
