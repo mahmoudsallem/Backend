@@ -16,7 +16,7 @@ Short: CI/CD pipeline for building, testing, scanning, signing, and reporting th
 ## Overview
 
 - **Workflow name:** CI/CD Pipeline
-- **Trigger:** push to `main` or `dev`
+- **Trigger:** push to `dev`, pull requests to `dev` (validation)
 - **High-level flow:** Secret Scanning → Build & Security Analysis → Parallel Test & Security Jobs → Image Signing (Cosign) → Final Summary
 
 ## Stages & Jobs
