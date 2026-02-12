@@ -1,0 +1,78 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [dev]
+
+jobs:
+  validate-required-files:
+    name: Validate Required Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for required files
+        run: |
+          echo "Validating required files exist..."
+          MISSING_FILES=()
+
+          if [ ! -f "Dockerfile" ]; then
+            echo "❌ Dockerfile is missing"
+            MISSING_FILES+=("Dockerfile")
+          else
+            echo "✅ Dockerfile exists"
+          fi
+
+          if [ ! -f "requirements.txt" ]; then
+            echo "❌ requirements.txt is missing"
+            MISSING_FILES+=("requirements.txt")
+          else
+            echo "✅ requirements.txt exists"
+          fi
+
+          if [ ! -f "app.py" ]; then
+            echo "❌ app.py is missing"
+            MISSING_FILES+=("app.py")
+          else
+            echo "✅ app.py exists"
+          fi
+
+          if [ ${#MISSING_FILES[@]} -gt 0 ]; then
+            echo ""
+            echo "=========================================="
+            echo "ERROR: The following required files are missing:"
+            for file in "${MISSING_FILES[@]}"; do
+              echo "  - $file"
+            done
+            echo "=========================================="
+            exit 1
+          fi
+
+          echo ""
+          echo "=========================================="
+          echo "All required files are present!"
+          echo "=========================================="
+
+      - name: Validation Summary
+        if: always()
+        run: |
+          echo "### File Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          if [ -f "Dockerfile" ]; then
+            echo "| Dockerfile | ✅ Present |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Dockerfile | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "requirements.txt" ]; then
+            echo "| requirements.txt | ✅ Present |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| requirements.txt | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "app.py" ]; then
+            echo "| app.py | ✅ Present |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| app.py | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
