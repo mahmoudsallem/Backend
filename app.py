@@ -15,6 +15,10 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'change-me-in-production')
+
+# CSRF configuration - can be disabled via environment variable for API-only usage
+app.config['WTF_CSRF_ENABLED'] = os.getenv('WTF_CSRF_ENABLED', 'True').lower() == 'true'
+
 CORS(app, supports_credentials=True)
 csrf = CSRFProtect(app)
 
