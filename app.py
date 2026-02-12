@@ -44,6 +44,9 @@ if not database_url:
     if host and port and dbname and user and password:
         database_url = f'postgresql://{user}:{password}@{host}:{port}/{dbname}'
 
+if not database_url:
+    database_url = 'sqlite:////tmp/tasks.db'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken', 'X-CSRF-Token']
@@ -148,6 +151,7 @@ def health_check():
         db.session.execute(text('SELECT 1'))
         return jsonify({
             'status': 'healthy',
+            'service': 'task-manager-api',
             'database': 'connected',
             'timestamp': datetime.now(timezone.utc) 
         }), 200
