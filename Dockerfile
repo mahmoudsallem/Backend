@@ -29,7 +29,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-RUN groupadd --system app && useradd --system --gid app --home /app --shell /usr/sbin/nologin app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpq5 \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system app && useradd --system --gid app --home /app --shell /usr/sbin/nologin app
 
 COPY --from=builder /opt/venv /opt/venv
 COPY . .
