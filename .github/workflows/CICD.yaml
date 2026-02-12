@@ -334,7 +334,7 @@ jobs:
       - sast-semgrep
       - snyk-code
       - application-tests
-    environment: production
+    environment: ECR_REPOSITORY
     permissions:
       contents: read
       id-token: write
